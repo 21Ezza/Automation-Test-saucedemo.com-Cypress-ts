@@ -8,3 +8,12 @@ Cypress.Commands.add('login',()=>{
 
     cy.url().should('include', '/inventory.html');
 });
+
+Cypress.Commands.add('checkOut',()=>{
+    cy.get('[data-test="add-to-cart-sauce-labs-backpack"]').click()
+    cy.get('[data-test="add-to-cart-sauce-labs-fleece-jacket"]').click()
+    cy.get('[data-test="add-to-cart-sauce-labs-bike-light"]').click()
+    cy.get('[data-test="shopping-cart-link"]').click()
+
+
+});
