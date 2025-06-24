@@ -41,13 +41,49 @@ jobs:
             --config "${CONFIG_OPTIONS}"
         continue-on-error: true
 
-      - name: Upload Test Artifacts (shared folder)
+      - name: Save reports to workspace
+        run: |
+          mkdir -p ${{ github.workspace }}/shared-results/reports
+          cp -r results/reports/* ${{ github.workspace }}/shared-results/reports/ || true
+
+  consolidate-reports:
+    name: Consolidate Reports and Generate HTML
+    runs-on: ubuntu-latest
+    needs: prepare-and-run-tests
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install mochawesome tools
+        run: npm install mochawesome-merge mochawesome-report-generator
+
+      - name: Merge mochawesome reports
+        run: |
+          mkdir -p merged_reports
+          echo "--- Copying .json reports from shared-results ---"
+          find ${{ github.workspace }}/shared-results/reports -type f -name "*.json" -exec cp {} merged_reports/ \;
+
+          echo "--- List of files in merged_reports ---"
+          ls -lh merged_reports/
+
+          echo "Running mochawesome-merge..."
+          npx mochawesome-merge merged_reports/*.json > cypress-combined-report.json
+
+      - name: Generate combined HTML report
+        run: |
+          mkdir -p results/combined-html-report
+          npx marge cypress-combined-report.json -o results/combined-html-report
+
+      - name: Upload Combined Report file
         uses: actions/upload-artifact@v4
         with:
-          name: combined-test-artifacts
-          path: |
-            results/reports/
-            results/screenshots/${{ matrix.spec }}/
-            results/videos/${{ matrix.spec }}/
+          name: Report file
+          path: results/combined-html-report/
           retention-days: 7
-
