@@ -6,7 +6,8 @@ on:
   workflow_dispatch: # Optional: allows manual trigger from GitHub UI
 
 jobs:
-  cypress-run:
+  run-authentication-tests:
+    name: Run authentication Tests
     runs-on: ubuntu-latest
 
     steps:
@@ -21,5 +22,94 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run Cypress tests
-        run: npx cypress run --e2e --spec "cypress/e2e/**/*.cy.ts"
+      - name: Run authentication.cy.ts with reporters
+        run: |
+          npx cypress run \
+            --spec "cypress/e2e/authentication/authentication.cy.ts" \
+            --reporter mochawesome \
+            --reporter-options "reportDir=results/reports,overwrite=false,html=false,json=true" \
+            --reporter junit \
+            --reporter-options "mochaFile=results/reports/test-results-authentication.xml" \
+            --config "screenshotsFolder=results/screenshots/authentication,video=true,videosFolder=results/videos/authentication,requestTimeout=90000,responseTimeout=90000,defaultCommandTimeout=90000"
+        continue-on-error: true
+
+  run-sortingFunctionality-tests:
+    name: Run sortingFunctionality Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run sortingFunctionality.cy.ts with reporters
+        run: |
+          npx cypress run \
+            --spec "cypress/e2e/sortingFunctionality/sortingFunctionality.cy.ts" \
+            --reporter mochawesome \
+            --reporter-options "reportDir=results/reports,overwrite=false,html=false,json=true" \
+            --reporter junit \
+            --reporter-options "mochaFile=results/reports/test-results-sortingFunctionality.xml" \
+            --config "screenshotsFolder=results/screenshots/sortingFunctionality,video=true,videosFolder=results/videos/sortingFunctionality,requestTimeout=90000,responseTimeout=90000,defaultCommandTimeout=90000"
+        continue-on-error: true
+
+  run-shoppingCartFunctionality-tests:
+    name: Run shoppingCartFunctionality Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run shoppingCartFunctionality.cy.ts with reporters
+        run: |
+          npx cypress run \
+            --spec "cypress/e2e/shoppingCartFunctionality/shoppingCartFunctionality.cy.ts" \
+            --reporter mochawesome \
+            --reporter-options "reportDir=results/reports,overwrite=false,html=false,json=true" \
+            --reporter junit \
+            --reporter-options "mochaFile=results/reports/test-results-shoppingCartFunctionality.xml" \
+            --config "screenshotsFolder=results/screenshots/shoppingCartFunctionality,video=true,videosFolder=results/videos/shoppingCartFunctionality,requestTimeout=90000,responseTimeout=90000,defaultCommandTimeout=90000"
+        continue-on-error: true
+
+  run-checkoutProcess-tests:
+    name: Run checkoutProcess Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run checkoutProcess.cy.ts with reporters
+        run: |
+          npx cypress run \
+            --spec "cypress/e2e/checkoutProcess/checkoutProcess.cy.ts" \
+            --reporter mochawesome \
+            --reporter-options "reportDir=results/reports,overwrite=false,html=false,json=true" \
+            --reporter junit \
+            --reporter-options "mochaFile=results/reports/test-results-checkoutProcess.xml" \
+            --config "screenshotsFolder=results/screenshots/checkoutProcess,video=true,videosFolder=results/videos/checkoutProcess,requestTimeout=90000,responseTimeout=90000,defaultCommandTimeout=90000"
+        continue-on-error: true
