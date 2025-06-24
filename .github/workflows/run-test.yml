@@ -46,7 +46,7 @@ jobs:
       - name: Upload Combined Test Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: combined-test-artifacts
+          name: combined-test-artifacts-${{ matrix.spec }}
           path: |
             results/reports/
             results/screenshots/${{ matrix.spec }}/
@@ -71,10 +71,9 @@ jobs:
       - name: Install mochawesome tools
         run: npm install mochawesome-merge mochawesome-report-generator
 
-      - name: Download Combined Test Artifacts
+      - name: Download all test artifacts
         uses: actions/download-artifact@v4
         with:
-          name: combined-test-artifacts
           path: all-test-artifacts
 
       - name: Merge mochawesome reports
