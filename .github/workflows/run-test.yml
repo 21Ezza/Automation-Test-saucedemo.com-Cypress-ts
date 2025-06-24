@@ -44,7 +44,7 @@ jobs:
       - name: Upload Test Artifacts for ${{ matrix.spec }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.spec }}-test-artifacts
+          name: test-artifacts-${{ matrix.spec }}
           path: |
             results/reports/
             results/screenshots/${{ matrix.spec }}/
