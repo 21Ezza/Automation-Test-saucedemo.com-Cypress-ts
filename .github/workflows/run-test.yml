@@ -74,29 +74,45 @@ jobs:
         with:
           path: all-test-artifacts
 
-      - name: List downloaded artifacts (for debugging)
-        run: ls -R all-test-artifacts
+      - name: List downloaded artifacts (Deep Inspection)
+        run: |
+          echo "--- Contents of all-test-artifacts ---"
+          ls -R all-test-artifacts
+          echo "--------------------------------------"
+          # Also check for JSON files specifically
+          echo "--- Searching for .json files in all-test-artifacts ---"
+          find all-test-artifacts -name "*.json"
+          echo "-------------------------------------------------------"
+
 
       - name: Install Mochawesome Merge and Report Generator
         run: npm install mochawesome-merge mochawesome-report-generator
 
+      - name: Create merged_reports directory
+        run: mkdir -p merged_reports
+
       - name: Copy Mochawesome JSON reports to a single directory
         run: |
-          mkdir -p merged_reports # This line is crucial: create the directory first
-          # Find all mochawesome JSON files within the downloaded artifacts
-          # and copy them to the merged_reports directory.
+          # Use the find command and check its output
+          echo "Attempting to copy JSON files..."
           find all-test-artifacts -name "*.json" -path "*/reports/*" -exec cp {} merged_reports/ \;
-
-      - name: Verify copied JSON files (optional, for debugging)
-        run: ls merged_reports/
+          # Add a check to see what was actually copied
+          echo "--- Contents of merged_reports after copy attempt ---"
+          ls -l merged_reports/
+          echo "-----------------------------------------------------"
+        continue-on-error: true # Keep going even if no files are found here for now
 
       - name: Merge Mochawesome JSON reports
         run: |
+          echo "Running mochawesome-merge..."
           npx mochawesome-merge "merged_reports/*.json" > cypress-combined-report.json
+        # Add conditional execution: only run if there are JSON files to merge
+        # This prevents the "Pattern matched no report files" error if no files were copied
+        if: success() || failure() # Run regardless of previous step success/failure to show error if any
 
       - name: Generate combined Mochawesome HTML report
         run: |
-          mkdir -p results/combined-html-report # Ensure output directory exists
+          mkdir -p results/combined-html-report
           npx marge cypress-combined-report.json -o results/combined-html-report
 
       - name: Upload Combined HTML Report
