@@ -38,13 +38,20 @@ jobs:
 
           npx cypress run \
             --spec "cypress/e2e/${{ matrix.spec }}/${{ matrix.spec }}.cy.ts" \
+            --reporter mochawesome \
+            --reporter-options "reportDir=results/reports,overwrite=false,html=false,json=true" \
             --config "${CONFIG_OPTIONS}"
         continue-on-error: true
 
-      - name: Save reports to workspace
-        run: |
-          mkdir -p ${{ github.workspace }}/shared-results/reports
-          cp -r results/reports/* ${{ github.workspace }}/shared-results/reports/ || true
+      - name: Upload Combined Test Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-test-artifacts
+          path: |
+            results/reports/
+            results/screenshots/${{ matrix.spec }}/
+            results/videos/${{ matrix.spec }}/
+          retention-days: 7
 
   consolidate-reports:
     name: Consolidate Reports and Generate HTML
@@ -64,11 +71,17 @@ jobs:
       - name: Install mochawesome tools
         run: npm install mochawesome-merge mochawesome-report-generator
 
+      - name: Download Combined Test Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: combined-test-artifacts
+          path: all-test-artifacts
+
       - name: Merge mochawesome reports
         run: |
           mkdir -p merged_reports
-          echo "--- Copying .json reports from shared-results ---"
-          find ${{ github.workspace }}/shared-results/reports -type f -name "*.json" -exec cp {} merged_reports/ \;
+          echo "--- Copying .json reports from all-test-artifacts ---"
+          find all-test-artifacts -type f -name "*.json" -exec cp {} merged_reports/ \;
 
           echo "--- List of files in merged_reports ---"
           ls -lh merged_reports/
@@ -81,7 +94,7 @@ jobs:
           mkdir -p results/combined-html-report
           npx marge cypress-combined-report.json -o results/combined-html-report
 
-      - name: Upload Combined Report file
+      - name: Upload Final Report file
         uses: actions/upload-artifact@v4
         with:
           name: Report file
