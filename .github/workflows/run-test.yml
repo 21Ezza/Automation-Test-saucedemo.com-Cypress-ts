@@ -11,7 +11,6 @@ jobs:
     name: Prepare Environment and Run Cypress Tests
     runs-on: ubuntu-latest
     strategy:
-
       matrix:
         spec:
           - authentication
@@ -78,17 +77,27 @@ jobs:
       - name: List downloaded artifacts (for debugging)
         run: ls -R all-test-artifacts
 
-      - name: Install Mochawesome Merge
+      - name: Install Mochawesome Merge and Report Generator
         run: npm install mochawesome-merge mochawesome-report-generator
+
+      - name: Copy Mochawesome JSON reports to a single directory
+        run: |
+          mkdir -p merged_reports # This line is crucial: create the directory first
+          # Find all mochawesome JSON files within the downloaded artifacts
+          # and copy them to the merged_reports directory.
+          find all-test-artifacts -name "*.json" -path "*/reports/*" -exec cp {} merged_reports/ \;
+
+      - name: Verify copied JSON files (optional, for debugging)
+        run: ls merged_reports/
 
       - name: Merge Mochawesome JSON reports
         run: |
-          # Find all mochawesome JSON files across downloaded artifacts
-          find all-test-artifacts -name "*.json" -path "*/reports/*" -exec cp {} merged_reports/ \;
-          npx mochawesome-merge merged_reports/*.json > cypress-combined-report.json
+          npx mochawesome-merge "merged_reports/*.json" > cypress-combined-report.json
 
       - name: Generate combined Mochawesome HTML report
-        run: npx marge cypress-combined-report.json -o results/combined-html-report
+        run: |
+          mkdir -p results/combined-html-report # Ensure output directory exists
+          npx marge cypress-combined-report.json -o results/combined-html-report
 
       - name: Upload Combined HTML Report
         uses: actions/upload-artifact@v4
@@ -96,3 +105,4 @@ jobs:
           name: combined-mochawesome-html-report
           path: results/combined-html-report/
           retention-days: 7
+
